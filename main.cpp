@@ -24,6 +24,11 @@
 #include <assert.h>
 #include <math.h>
 
+#if !defined(ESP8266) && !defined(ESP32)
+#include <string>
+#include <vector>
+#endif
+
 #include "src/common/mem.h"
 #include "src/common/strnicmp.h"
 #include "src/common/uint32float.h"
@@ -1584,6 +1589,79 @@ int8_t run_two_mempools(struct pbuf *mem) {
 }
 
 
+#if !defined(ESP8266) && !defined(ESP32)
+/* Parse synthesized rules with the real VM to exercise high named-variable indices. */
+static int8_t compile_variable_slot_test(const std::string &source) {
+  memset(&rule_options, 0, sizeof(rule_options));
+  rule_options.is_variable_cb = is_variable;
+  rule_options.is_event_cb = is_event;
+  rule_options.done_cb = rule_done_cb;
+  rule_options.vm_value_set = vm_value_set;
+  rule_options.vm_value_get = vm_value_get;
+  rule_options.event_cb = event_cb;
+
+  std::vector<char> input_text(source.begin(), source.end());
+  input_text.push_back('\0');
+  unsigned char *arena = (unsigned char *)MALLOC(MEMPOOL_SIZE);
+  if(arena == NULL) {
+    fprintf(stderr, "No memory for variable slot test\n");
+    exit(1);
+  }
+  memset(arena, 0, MEMPOOL_SIZE);
+  struct pbuf input = {}, mem = {};
+  input.payload = input_text.data();
+  input.tot_len = source.size();
+  mem.payload = arena;
+  mem.tot_len = MEMPOOL_SIZE;
+  struct rules_t **test_rules = NULL;
+  uint8_t ntest_rules = 0;
+  MMU_SEC_HEAP = NULL;
+
+  int8_t status = rule_initialize(&input, &test_rules, &ntest_rules, &mem, NULL);
+  // A successful parse must produce exactly one executable Rules block.
+  if(status == 0 && ntest_rules != 1) {
+    fprintf(stderr, "Native Rules boundary test parsed %u blocks; expected 1\n",
+            (unsigned)ntest_rules);
+    status = -2;
+  }
+  rules_gc(&test_rules, &ntest_rules);
+  FREE(arena);
+  return status;
+}
+
+static void check_named_variable_slot_bounds(void) {
+  const int boundaries[] = {127, 128, 200, 255, 256};
+  for(unsigned int t = 0; t < sizeof(boundaries)/sizeof(boundaries[0]); t++) {
+    const int slots = boundaries[t];
+    // One event slot plus (slots - 1) distinct global variables.
+    std::string source = "on foo then ";
+    for(int i = 0; i < slots - 1; i++) {
+      // is_variable() in this test harness accepts alphabetic identifiers only.
+      char name[5];
+      snprintf(name, sizeof(name), "$%c%c", 'a' + (i/26), 'a' + (i%26));
+      source += name;
+      source += " = 1; ";
+    }
+    char last[5];
+    snprintf(last, sizeof(last), "$%c%c", 'a' + ((slots-2)/26), 'a' + ((slots-2)%26));
+    source += "if ";
+    source += last;
+    source += " == 1 then $aa = ";
+    source += last;
+    source += "; end end";
+
+    const int8_t expected = slots == 256 ? -1 : 0;
+    const int8_t actual = compile_variable_slot_test(source);
+    if(actual != expected) {
+      fprintf(stderr, "Variable slot test failed: slots=%d status=%d expected=%d\n",
+              slots, actual, expected);
+      exit(1);
+    }
+  }
+  printf("Named-variable slot boundary tests passed\n");
+}
+#endif
+
 #ifndef ESP8266
 int main(void) {
   int nrtests = sizeof(unittests)/sizeof(unittests[0]), i = 0;
@@ -1693,6 +1771,9 @@ int main(void) {
       FREE(mempool);
     }
   }
+#if !defined(ESP8266) && !defined(ESP32)
+  check_named_variable_slot_bounds();
+#endif
   printf("All test done\n");
   return 0;
 }
