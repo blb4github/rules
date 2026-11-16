@@ -2491,8 +2491,8 @@ static void bc_math_move_closest(struct rules_t *obj, int16_t limit) {
 
             struct vm_top_t *y = (struct vm_top_t *)&obj->bc.buffer[tmp1C];
             uint8_t xT = getval(x->type);
-          int16_t xA = (int8_t)getval(x->a), xB = (int8_t)getval(x->b), xC = (int8_t)getval(x->c);
-          int16_t yA = (int8_t)getval(y->a);
+            int16_t xA = (int8_t)getval(x->a), xB = (int8_t)getval(x->b), xC = (int8_t)getval(x->c);
+            int16_t yA = (int8_t)getval(y->a);
 
             setval(x->type, getval(y->type));
             setval(x->b, getval(y->b));
@@ -2569,8 +2569,8 @@ static void bc_math_move_closest(struct rules_t *obj, int16_t limit) {
 
             struct vm_top_t *y = (struct vm_top_t *)&obj->bc.buffer[tmp1B];
             uint8_t xT = getval(x->type);
-          int16_t xA = (int8_t)getval(x->a), xB = (int8_t)getval(x->b), xC = (int8_t)getval(x->c);
-          int16_t yA = (int8_t)getval(y->a);
+            int16_t xA = (int8_t)getval(x->a), xB = (int8_t)getval(x->b), xC = (int8_t)getval(x->c);
+            int16_t yA = (int8_t)getval(y->a);
 
             setval(x->type, getval(y->type));
             setval(x->b, getval(y->b));
@@ -2859,7 +2859,7 @@ static int32_t bc_parse_math_order(char **text, struct rules_t *obj, uint16_t *p
                 a_a = rule_operators[a_is_op].associativity;
                 if(a_a == 2) {
                   int8_t a = getval(x->type);
-                int16_t d = (int8_t)getval(x->c);
+                  int16_t d = (int8_t)getval(x->c);
 
                   tmp2B = bc_find_math_dep(obj, tmp2, getval(x->b));
                   if(tmp2B == -1) {
@@ -5578,7 +5578,7 @@ int8_t rule_initialize(struct pbuf *input, struct rules_t ***rules, uint8_t *nrr
       ((stack == NULL) ? 0 : getval(stack->bufsize)),
       ((varstack->nrbytes == 0) ? 0 : varstack->nrbytes),
       (varstack->bufsize),
-	  varstack->nrbytes / sizeof(struct vm_vchar_t)
+      varstack->nrbytes / sizeof(struct vm_vchar_t)
     );
 #else
     clock_gettime(CLOCK_MONOTONIC, &timestamp.second);
@@ -5587,7 +5587,7 @@ int8_t rule_initialize(struct pbuf *input, struct rules_t ***rules, uint8_t *nrr
       ((double)timestamp.second.tv_sec + 1.0e-9*timestamp.second.tv_nsec) -
       ((double)timestamp.first.tv_sec + 1.0e-9*timestamp.first.tv_nsec));
 
-    printf("bytecode: %d/%d, heap: %d/%d, stack: %d/%d bytes, varstack: %d/%d bytes\n",
+    printf("bytecode: %d/%d, heap: %d/%d, stack: %d/%d bytes, varstack: %d/%d bytes, varstack slots: %lu/255\n",
       getval(obj->bc.nrbytes),
       getval(obj->bc.bufsize),
       getval(obj->heap->nrbytes),
@@ -5595,7 +5595,8 @@ int8_t rule_initialize(struct pbuf *input, struct rules_t ***rules, uint8_t *nrr
       ((stack == NULL) ? 0 : getval(stack->nrbytes)),
       ((stack == NULL) ? 0 : getval(stack->bufsize)),
       ((varstack->nrbytes == 0) ? 0 : varstack->nrbytes),
-      (varstack->bufsize)
+      (varstack->bufsize),
+      varstack->nrbytes / sizeof(struct vm_vchar_t)
     );
 #endif
 /*LCOV_EXCL_STOP*/
@@ -5655,7 +5656,7 @@ int8_t rule_initialize(struct pbuf *input, struct rules_t ***rules, uint8_t *nrr
     ((stack == NULL) ? 0 : getval(stack->bufsize)),
     ((varstack->nrbytes == 0) ? 0 : varstack->nrbytes),
     (varstack->bufsize),
-	varstack->nrbytes / sizeof(struct vm_vchar_t)
+    varstack->nrbytes / sizeof(struct vm_vchar_t)
   );
 #else
   clock_gettime(CLOCK_MONOTONIC, &timestamp.second);
@@ -5664,7 +5665,7 @@ int8_t rule_initialize(struct pbuf *input, struct rules_t ***rules, uint8_t *nrr
     ((double)timestamp.second.tv_sec + 1.0e-9*timestamp.second.tv_nsec) -
     ((double)timestamp.first.tv_sec + 1.0e-9*timestamp.first.tv_nsec));
 
-  printf("bytecode: %d/%d, heap: %d/%d, stack: %d/%d bytes, varstack %d/%d bytes\n",
+  printf("bytecode: %d/%d, heap: %d/%d, stack: %d/%d bytes, varstack: %d/%d bytes, varstack slots: %lu/255\n",
     getval(obj->bc.nrbytes),
     getval(obj->bc.bufsize),
     getval(obj->heap->nrbytes),
@@ -5672,7 +5673,8 @@ int8_t rule_initialize(struct pbuf *input, struct rules_t ***rules, uint8_t *nrr
     ((stack == NULL) ? 0 : getval(stack->nrbytes)),
     ((stack == NULL) ? 0 : getval(stack->bufsize)),
     ((varstack->nrbytes == 0) ? 0 : varstack->nrbytes),
-    (varstack->bufsize)
+    (varstack->bufsize),
+    varstack->nrbytes / sizeof(struct vm_vchar_t)
   );
 #endif
 /*LCOV_EXCL_STOP*/
