@@ -1618,6 +1618,12 @@ static int8_t compile_variable_slot_test(const std::string &source) {
   MMU_SEC_HEAP = NULL;
 
   int8_t status = rule_initialize(&input, &test_rules, &ntest_rules, &mem, NULL);
+  // A successful parse must produce exactly one executable Rules block.
+  if(status == 0 && ntest_rules != 1) {
+    fprintf(stderr, "Native Rules boundary test parsed %u blocks; expected 1\n",
+            (unsigned)ntest_rules);
+    status = -2;
+  }
   rules_gc(&test_rules, &ntest_rules);
   FREE(arena);
   return status;
