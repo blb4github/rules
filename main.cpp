@@ -1589,7 +1589,6 @@ int8_t run_two_mempools(struct pbuf *mem) {
 }
 
 
-
 #if !defined(ESP8266) && !defined(ESP32)
 /* Parse synthesized rules with the real VM to exercise high named-variable indices. */
 static int8_t compile_variable_slot_test(const std::string &source) {
@@ -1605,7 +1604,7 @@ static int8_t compile_variable_slot_test(const std::string &source) {
   input_text.push_back('\0');
   unsigned char *arena = (unsigned char *)MALLOC(MEMPOOL_SIZE);
   if(arena == NULL) {
-    fprintf(stderr, "No memory for variable slot test\\n");
+    fprintf(stderr, "No memory for variable slot test\n");
     exit(1);
   }
   memset(arena, 0, MEMPOOL_SIZE);
@@ -1647,12 +1646,12 @@ static void check_named_variable_slot_bounds(void) {
     const int8_t expected = slots == 256 ? -1 : 0;
     const int8_t actual = compile_variable_slot_test(source);
     if(actual != expected) {
-      fprintf(stderr, "Variable slot test failed: slots=%d status=%d expected=%d\\n",
+      fprintf(stderr, "Variable slot test failed: slots=%d status=%d expected=%d\n",
               slots, actual, expected);
       exit(1);
     }
   }
-  printf("Named-variable slot boundary tests passed\\n");
+  printf("Named-variable slot boundary tests passed\n");
 }
 #endif
 
