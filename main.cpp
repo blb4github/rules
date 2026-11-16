@@ -1663,6 +1663,11 @@ static void check_named_variable_slot_bounds(void) {
 
 #ifndef ESP8266
 int main(void) {
+  if(getenv("RULES_BOUNDARY_ONLY") != NULL) {
+    check_named_variable_slot_bounds();
+    printf("Boundary-only native test completed successfully\\n");
+    return 0;
+  }
   int nrtests = sizeof(unittests)/sizeof(unittests[0]), i = 0;
 
   unsigned char *mempool = (unsigned char *)MALLOC(MEMPOOL_SIZE*2);
