@@ -1,0 +1,17 @@
+name: Native Rules regression checks
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  rules-native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build native Rules runner
+        run: cmake --build build --parallel 2
+      - name: Run upstream and new boundary tests
+        run: ./build/start
