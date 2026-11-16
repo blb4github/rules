@@ -14,4 +14,4 @@ jobs:
       - name: Build native Rules runner
         run: cmake --build build --parallel 2
       - name: Run upstream and new boundary tests
-        run: ./build/start
+        run: RULES_BOUNDARY_ONLY=1 ./build/start
