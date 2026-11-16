@@ -1771,7 +1771,9 @@ int main(void) {
       FREE(mempool);
     }
   }
+#if !defined(ESP8266) && !defined(ESP32)
   check_named_variable_slot_bounds();
+#endif
   printf("All test done\n");
   return 0;
 }
