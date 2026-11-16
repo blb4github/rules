@@ -1589,7 +1589,6 @@ int8_t run_two_mempools(struct pbuf *mem) {
 }
 
 
-
 #if !defined(ESP8266) && !defined(ESP32)
 /* Exercise jump-length boundaries using the actual parser, not mock bytecode. */
 static int8_t compile_jump_test(const std::string &source) {
@@ -1605,7 +1604,7 @@ static int8_t compile_jump_test(const std::string &source) {
   input_text.push_back('\0');
   unsigned char *arena = (unsigned char *)MALLOC(MEMPOOL_SIZE);
   if(arena == NULL) {
-    fprintf(stderr, "No memory for jump test\\n");
+    fprintf(stderr, "No memory for jump test\n");
     exit(1);
   }
   memset(arena, 0, MEMPOOL_SIZE);
@@ -1637,13 +1636,13 @@ static void check_conditional_jump_bounds(void) {
       int8_t actual = compile_jump_test(source);
       int8_t expected = large ? -1 : 0;
       if(actual != expected) {
-        fprintf(stderr, "Unexpected jump limit result: kind=%d statements=%d status=%d expected=%d\\n",
+        fprintf(stderr, "Unexpected jump limit result: kind=%d statements=%d status=%d expected=%d\n",
                 kind, statements, actual, expected);
         exit(1);
       }
     }
   }
-  printf("Conditional jump boundary tests passed\\n");
+  printf("Conditional jump boundary tests passed\n");
 }
 #endif
 
