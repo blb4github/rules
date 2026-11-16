@@ -1633,8 +1633,9 @@ static void check_named_variable_slot_bounds(void) {
   const int boundaries[] = {127, 128, 200, 255, 256};
   for(unsigned int t = 0; t < sizeof(boundaries)/sizeof(boundaries[0]); t++) {
     const int slots = boundaries[t];
-    std::string source;
-    for(int i = 0; i < slots; i++) {
+    // One event slot plus (slots - 1) distinct global variables.
+    std::string source = "on foo then ";
+    for(int i = 0; i < slots - 1; i++) {
       // is_variable() in this test harness accepts alphabetic identifiers only.
       char name[5];
       snprintf(name, sizeof(name), "$%c%c", 'a' + (i/26), 'a' + (i%26));
@@ -1642,12 +1643,12 @@ static void check_named_variable_slot_bounds(void) {
       source += " = 1; ";
     }
     char last[5];
-    snprintf(last, sizeof(last), "$%c%c", 'a' + ((slots-1)/26), 'a' + ((slots-1)%26));
+    snprintf(last, sizeof(last), "$%c%c", 'a' + ((slots-2)/26), 'a' + ((slots-2)%26));
     source += "if ";
     source += last;
     source += " == 1 then $aa = ";
     source += last;
-    source += "; end";
+    source += "; end end";
 
     const int8_t expected = slots == 256 ? -1 : 0;
     const int8_t actual = compile_variable_slot_test(source);
