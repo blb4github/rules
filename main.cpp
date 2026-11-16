@@ -24,6 +24,11 @@
 #include <assert.h>
 #include <math.h>
 
+#if !defined(ESP8266) && !defined(ESP32)
+#include <string>
+#include <vector>
+#endif
+
 #include "src/common/mem.h"
 #include "src/common/strnicmp.h"
 #include "src/common/uint32float.h"
@@ -1584,6 +1589,64 @@ int8_t run_two_mempools(struct pbuf *mem) {
 }
 
 
+
+#if !defined(ESP8266) && !defined(ESP32)
+/* Exercise jump-length boundaries using the actual parser, not mock bytecode. */
+static int8_t compile_jump_test(const std::string &source) {
+  memset(&rule_options, 0, sizeof(rule_options));
+  rule_options.is_variable_cb = is_variable;
+  rule_options.is_event_cb = is_event;
+  rule_options.done_cb = rule_done_cb;
+  rule_options.vm_value_set = vm_value_set;
+  rule_options.vm_value_get = vm_value_get;
+  rule_options.event_cb = event_cb;
+
+  std::vector<char> input_text(source.begin(), source.end());
+  input_text.push_back('\0');
+  unsigned char *arena = (unsigned char *)MALLOC(MEMPOOL_SIZE);
+  if(arena == NULL) {
+    fprintf(stderr, "No memory for jump test\\n");
+    exit(1);
+  }
+  memset(arena, 0, MEMPOOL_SIZE);
+
+  struct pbuf input = {}, mem = {};
+  input.payload = input_text.data();
+  input.tot_len = source.size();
+  mem.payload = arena;
+  mem.tot_len = MEMPOOL_SIZE;
+  struct rules_t **test_rules = NULL;
+  uint8_t ntest_rules = 0;
+  MMU_SEC_HEAP = NULL;
+
+  int8_t status = rule_initialize(&input, &test_rules, &ntest_rules, &mem, NULL);
+  rules_gc(&test_rules, &ntest_rules);
+  FREE(arena);
+  return status;
+}
+
+static void check_conditional_jump_bounds(void) {
+  for(int kind = 0; kind < 3; kind++) {
+    for(int large = 0; large <= 1; large++) {
+      const int statements = large ? 140 : 8;
+      std::string source = "if $a == 1 then ";
+      if(kind == 1) source += "$b = $b + 1; else ";
+      if(kind == 2) source += "$b = $b + 1; elseif $a == 2 then ";
+      for(int i = 0; i < statements; i++) source += "$b = $b + 1; ";
+      source += "end";
+      int8_t actual = compile_jump_test(source);
+      int8_t expected = large ? -1 : 0;
+      if(actual != expected) {
+        fprintf(stderr, "Unexpected jump limit result: kind=%d statements=%d status=%d expected=%d\\n",
+                kind, statements, actual, expected);
+        exit(1);
+      }
+    }
+  }
+  printf("Conditional jump boundary tests passed\\n");
+}
+#endif
+
 #ifndef ESP8266
 int main(void) {
   int nrtests = sizeof(unittests)/sizeof(unittests[0]), i = 0;
@@ -1693,6 +1756,7 @@ int main(void) {
       FREE(mempool);
     }
   }
+  check_conditional_jump_bounds();
   printf("All test done\n");
   return 0;
 }
